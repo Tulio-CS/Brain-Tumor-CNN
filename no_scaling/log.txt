@@ -1,0 +1,6 @@
+training
+loss: 0.3370 - accuracy: 0.9586 - val_loss: 1.2288 - val_accuracy: 0.9338
+
+
+testing
+loss: 0.0798 - accuracy: 0.9899

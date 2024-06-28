@@ -13,8 +13,6 @@ chanels = 3         #Numero de canais da imagem
 seed = 69           #Seed aleatoria
 batch = 32          #Tamanho do batch
 epocas = 50         #Numero de epocas
-validation_split = 0.2
-test_split = 0.1
 plot_sample = False
 
 
@@ -24,8 +22,11 @@ path = "Brain-Tumor-CNN/images/"   #Caminho para o diretorio com as imagens
 #Criando os datasets
 
 #Dataset para o treinamento
-full_ds =  tf.keras.utils.image_dataset_from_directory(
-    path+"Training",                         #Caminnho para o diretorio com as imagens
+train_ds = tf.keras.utils.image_dataset_from_directory(
+
+    path+"Training",                                    #Caminnho para o diretorio com as imagens
+    validation_split=0.2,                    #Fração das imagens para este dataset
+    subset="training",                       #Subset a ser retornado
     seed=seed,                               #Seed aleatoria
     image_size=(height,width),               #Redimensionar a imagem
     batch_size= batch,                       #Tamanho do batch
@@ -34,19 +35,21 @@ full_ds =  tf.keras.utils.image_dataset_from_directory(
     color_mode="rgb"                         #Tipo de imagem/quantidade de canais
 )
 
-# Calculate the number of samples
-num_samples = len(full_ds)
-num_validation_samples = int(validation_split * num_samples)
-num_test_samples = int(test_split * num_samples)
-num_train_samples = num_samples - num_validation_samples - num_test_samples
+#Dataset para a validação
+val_ds = tf.keras.utils.image_dataset_from_directory(
 
-# Split the dataset
-train_ds = full_ds.take(num_train_samples)
-remaining_ds = full_ds.skip(num_train_samples)
-val_ds = remaining_ds.take(num_validation_samples)
-test_ds = remaining_ds.skip(num_validation_samples)
+    path+"Testing",                                    #Caminnho para o diretorio com as imagens
+    validation_split=0.2,                    #Fração das imagens para este dataset
+    subset="validation",                     #Subset a ser retornado
+    seed=seed,                               #Seed aleatoria
+    image_size=(height,width),               #Redimensionar a imagem
+    batch_size= batch,                       #Tamanho do batch
+    label_mode="int",                        #Sparse categorical crossentropy
+    labels= "inferred",                      #Labels gerados do diretorio
+    color_mode="rgb"                         #Tipo de imagem/quantidade de canais
+)
 
-class_names = full_ds.class_names          #Nomes das classes
+class_names = train_ds.class_names          #Nomes das classes
 
 normalization_layer = tfl.Rescaling(1./255)
 normalized_train_dataset = train_ds.map(lambda x, y: (normalization_layer(x), y))
@@ -82,7 +85,7 @@ x = tfl.Dropout(0.2)(x)
 x = tfl.Dense(512, activation='relu')(x)
 x = tfl.BatchNormalization()(x)
 x = tfl.Dropout(0.2)(x)
-output = tfl.Dense(4, activation='linear')(x)
+output = tfl.Dense(4, activation='softmax')(x)
 
 model = Model(inputs=[modelo_base.input], outputs=[output])
 
@@ -93,7 +96,7 @@ model.compile(optimizer='adam',
 #model.summary()
 
 #Criando o checkpoint, para salvar os melhores pesos
-callback = tfc.ModelCheckpoint("E:/GitHub/Brain-Tumor-CNN/best.keras",save_best_only=True)
+callback = tfc.ModelCheckpoint("./best.keras",save_best_only=True)
 
 reduce_lr_callback = tfc.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-6)
 
@@ -104,13 +107,13 @@ early_stopping_callback = tfc.EarlyStopping(patience=5,restore_best_weights=True
 history = model.fit(train_ds,validation_data=val_ds,epochs=epocas,callbacks=[early_stopping_callback, callback, reduce_lr_callback])
 
 #Carregando os melhores pesos
-model.load_weights("E:/GitHub/Brain-Tumor-CNN/best.keras")
+model.load_weights("./best.keras")
 
 #Salvando o modelo
-model.save("E:/GitHub/Brain-Tumor-CNN/model.h5")
+model.save("./model.h5")
 
 #Salvando os pesos
-model.save_weights("ModelWeights.weights.h5")
+model.save_weights("./ModelWeights.weights.h5")
 
 #Plotando o grafico de acuracia
 plt.plot(history.history['accuracy'],color='red',label='training accuracy')

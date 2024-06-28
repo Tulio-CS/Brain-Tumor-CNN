@@ -10,13 +10,13 @@ height = 256
 width = 256
 batch = 32
 
-path = "C:/Users/tulio/OneDrive/Documentos/GitHub/brain_tumor_CNN/images/Training"
+path = "Brain-Tumor-CNN/images/Training"
 
 #Carregando o modelo
-model = load_model("C:/Users/tulio/OneDrive/Documentos/GitHub/brain_tumor_CNN/model.h5")
+model = load_model("E:/GitHub/Brain-Tumor-CNN/model.h5")
 
 #Carregando os pesos
-model.load_weights("C:/Users/tulio/OneDrive/Documentos/GitHub/brain_tumor_CNN/ModelWeights.h5")
+model.load_weights("E:/GitHub/Brain-Tumor-CNN/ModelWeights.weights.h5")
 
 
 #Criando o dataset
